@@ -19,6 +19,8 @@ var del = require('del');
 var runSequence = require('run-sequence');
 var htmlmin = require('gulp-htmlmin');
 
+var buildVersion = null;
+
 gulp.task("default", ["browser-sync", "build-default", "watch"]);
 gulp.task("build-default", ["build-js", "build-sass"], browserSync.reload);
 
@@ -30,7 +32,8 @@ gulp.task("build", function(cb) {
 });
 
 gulp.task("deploy", function(cb) {
-	runSequence("build", "clean-build", "copy-build", "inject-file-versions", "minify-html", cb);
+	buildVersion = getBuildVersion();
+	runSequence("build", "clean-build", "copy-build", "inject-file-versions", "inject-build-version", "minify-html", cb);
 });
 
 gulp.task("browser-sync", function() {
@@ -114,7 +117,6 @@ gulp.task("inject", function() {
 		.pipe(inject(gulp.src("dev/inject/*"), {
 			transform: function(path, file) {
 				var tag = /\.css$/ig.test(path) ? "style" : "";
-				console.log(path, tag);
 				return (tag ? "<"+tag+">" : "") + file.contents.toString() + (tag ? "</"+tag+">" : "");
 			}
 		}))
@@ -124,14 +126,22 @@ gulp.task("inject", function() {
 gulp.task("inject-file-versions", function(cb) {
 	var indexFile = fs.readFileSync("build/index.html", "utf-8");
 	const files = [
-		{name: 'deploy/regexr.js', tag: 'JS_VERSION'},
-		{name: 'deploy/regexr.css', tag: 'CSS_VERSION'}
+		{name: 'build/deploy/regexr.js', tag: 'JS_VERSION'},
+		{name: 'build/deploy/regexr.css', tag: 'CSS_VERSION'}
 	].forEach(function(file, idx, array) {
 		var version = createFileHash(file.name);
 		indexFile = indexFile.replace("["+file.tag+"]", version);
 	});
 	fs.writeFile("build/index.html", indexFile, cb);
 });
+
+gulp.task("inject-build-version", function(cb) {
+	var js = fs.readFileSync("build/deploy/regexr.js", "utf-8");
+	js = js.replace("[build-version]", buildVersion);
+	js = js.replace("[build-date]", getDateString());
+	fs.writeFile("build/deploy/regexr.js", js, cb);
+});
+
 
 gulp.task("minify-html", function() {
 	return gulp.src("build/index.html")
@@ -177,4 +187,19 @@ function createFileHash(filename) {
 function swallowError(err) {
 	console.warn(err.toString());
 	this.emit("end");
+}
+
+function getBuildVersion() {
+	let i = process.argv.indexOf("--v")
+	let v = i === -1 ? null : process.argv[i+1];
+	if (!v || !/^\d+\.\d+\.\d+/.test(v)) {
+		throw("You must specify a version number with `--v x.x.x`.")
+	}
+	return v;
+}
+
+function getDateString() {
+	var now = new Date();
+	var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	return months[now.getMonth()]+" "+now.getDate()+", "+now.getFullYear();
 }

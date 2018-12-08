@@ -100,8 +100,13 @@ Utils.getRegExp = function(str) {
 };
 
 Utils.decomposeRegEx = function(str, delim="/") {
-	let index = str.lastIndexOf(delim);
-	return index !== -1 ? {source: str.substring(1, index), flags: str.substr(index + 1)} : {source: str, flags: "g"};
+	let re = new RegExp("^"+delim+"(.*)"+delim+"([igmsuUxy]*)$");
+	let match = re.exec(str);
+	if (match) {
+		return {source: match[1], flags: match[2]};
+	} else {
+		return {source: str, flags: "g"};
+	}
 };
 
 Utils.isMac = function () {
@@ -118,7 +123,7 @@ Utils.now = function() {
 
 Utils.getUrlParams = function() {
 	let match, re = /([^&=]+)=?([^&]*)/g, params = {};
-	let url  = window.location.search.substring(1).replace("+", " ");
+	let url  = window.location.search.substr(1).replace(/\+/g, " ");
 	while (match = re.exec(url)) { params[decodeURIComponent(match[1])] = decodeURIComponent(match[2]); }
 	return params;
 };
