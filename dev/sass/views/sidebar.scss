@@ -111,7 +111,10 @@
 					color: $lighter;
 					
 					.token, .rating, .icon { color: currentColor; }
-					&:hover { color: $white; }
+					&:hover {
+						background: $dark;
+						color: $white;
+					}
 				}
 				
 				&.disabled {
@@ -266,8 +269,8 @@
 			
 			code em {
 				font-style: normal;
-				background: $theme-color;
-				color: $black;
+				background: $match-color;
+				color: $white;
 				margin-right: 1px;
 			}
 			
@@ -284,11 +287,11 @@
 		> .hello {
 			flex: 0 0 0;
 			padding: 0;
-			border-top: 3px solid $theme-color;
+			border: $pad*0.25 solid $black;
 			background: $black;
 
 			.noad {
-				padding: $pad;
+				padding: $pad*0.75;
 				color: $mid;
 
 				b {

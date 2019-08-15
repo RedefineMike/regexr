@@ -40,6 +40,9 @@
   .native-details {
 	display: flex;
 	font-size: 12px;
+	position: relative;
+
+	max-height: 5em;
   
 	flex-flow: column;
   }
@@ -116,7 +119,7 @@
 	left: 130px;
 	display: block;
 	padding: 8px 13px;
-	background: $darkest;
+	border-top: solid 1px $darkest;
 	text-transform: uppercase;
 	letter-spacing: 1px;
 	font-weight: 400;
